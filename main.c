@@ -13,6 +13,8 @@ struct KAPI{
     char cikis_isim;
     int cikis_degeri;
     int gecikme_suresi;
+    int sure;
+    int acikkapali;
 };
 struct DEVRE {
     int giris_sayisi;
@@ -37,6 +39,8 @@ void kapilarisirala();
 int giris_var_mi(char giris);
 int uc_var_mi(char giris);
 void devresimulasyonu(char *degisecekuclar,int durum);
+void saniyeayarlama(struct KAPI *kapi);
+void OnOff(char isim,int onoff);
 int kapiyicalistir(struct KAPI *kapi);
 int indexbul(char *dizi,char a);
 void degerdegistir(char isim,int yenideger);
@@ -73,7 +77,15 @@ int main() {
 
     devre->kapilar[0].gecikme_suresi=3;
     devre->kapilar[1].gecikme_suresi=1;
-    devre->kapilar[2].gecikme_suresi=1;
+    devre->kapilar[2].gecikme_suresi=2;
+
+    devre->kapilar[0].sure=devre->kapilar[0].gecikme_suresi;
+    devre->kapilar[1].sure=devre->kapilar[1].gecikme_suresi;
+    devre->kapilar[2].sure=devre->kapilar[2].gecikme_suresi;
+
+    devre->kapilar[0].acikkapali=0;
+    devre->kapilar[1].acikkapali=0;
+    devre->kapilar[2].acikkapali=0;
 
     strcpy(devre->kapilar[0].isim,"nor");
     strcpy(devre->kapilar[1].isim,"nand");
@@ -422,13 +434,16 @@ void devresimulasyonu(char *degisecekuclar,int durum){
             strcat(olaylar,temp);
           //  saniye++;  ilk atamada saniye değeri hep 0 fakat bu yorum satırı kaldırılırsa değer arttırılır.
             degerdegistir(degisecekuclar[i],1);
+            OnOff(degisecekuclar[i],1);
 
-        }saniye=1;// yukarıdaki saniye++; kısmındaki yorum satırı kaldırılır ise bu eşiklik silinmelidir.
+        }
 
 
         for (int j = 0; j <devre->kapi_sayisi ; ++j) {
 
-            if(kapiyicalistir(&(devre->kapilar[j])))kontrol++;
+            if(kapiyicalistir(&(devre->kapilar[j]))){
+                kontrol++;
+            }
 
             if(j==devre->kapi_sayisi-1)
                 if(kontrol!=0){
@@ -450,7 +465,7 @@ void devresimulasyonu(char *degisecekuclar,int durum){
             //  saniye++;  ilk atamada saniye değeri hep 0 fakat bu yorum satırı kaldırılırsa değer arttırılır.
             degerdegistir(degisecekuclar[i],0);
 
-        }  saniye=1;// yukarıdaki saniye++; kısmındaki yorum satırı kaldırılır ise bu eşiklik silinmelidir.
+        }
 
 
         for (int j = 0; j <devre->kapi_sayisi ; ++j) {
@@ -472,6 +487,39 @@ void devresimulasyonu(char *degisecekuclar,int durum){
 
 }
 
+void saniyeayarlama(struct KAPI *kapi){
+    //printf("***1***-%s kapısı = %d süre = %d saniye= %d\n",kapi->isim,kapi->acikkapali,kapi->sure,saniye);
+
+    saniye+=kapi->sure;
+int kapisure=kapi->sure;
+
+
+    for (int i = 0; i <devre->kapi_sayisi; ++i) {
+       // printf("1 - kapi ismi = %s acikkapali = %d kapinin süresi = %d \n",devre->kapilar[i].isim,devre->kapilar[i].acikkapali,devre->kapilar[i].sure);
+        if(devre->kapilar[i].acikkapali==1)
+            devre->kapilar[i].sure-=kapisure;
+       // printf("2 - kapi ismi = %s acikkapali = %d kapinin süresi = %d \n\n",devre->kapilar[i].isim,devre->kapilar[i].acikkapali,devre->kapilar[i].sure);
+    }
+
+
+ //   printf("***2***-%s kapısı = %d süre = %d saniye=%d\n\n",kapi->isim,kapi->acikkapali,kapi->sure,saniye);
+
+}
+
+void OnOff(char isim,int onoff){
+
+
+    for (int i = 0; i <devre->kapi_sayisi ; ++i) {
+        if(indexbul(devre->kapilar[i].giris_isimleri,isim)!=-1)
+            devre->kapilar[i].acikkapali=onoff;
+
+    }
+
+
+
+
+}
+
 int kapiyicalistir(struct KAPI *kapi){ // kapıyı çalışıtırır mantıksal işlemleri yapar ve kapının çıkış değerini değiştirir.
 
     char temp[BOYUT2];int sonuc=kapi->giris_degerleri[0], deger=kapi->cikis_degeri;
@@ -490,10 +538,14 @@ if(strcmp(kapi->isim,"AND")==0||strcmp(kapi->isim,"and")==0){
 
     if(deger==kapi->cikis_degeri)return 0;
 
+    saniyeayarlama(kapi);
+    OnOff(kapi->cikis_isim,1);
 
+    kapi->acikkapali=0;
+    kapi->sure=kapi->gecikme_suresi;
     sprintf(temp,"%dns: %c %d->%d\n", saniye,kapi->cikis_isim,deger,kapi->cikis_degeri);
     strcat(olaylar,temp);
-    saniye++;
+    //saniye++;
 
 
 }
@@ -511,9 +563,14 @@ else if(strcmp(kapi->isim,"NOR")==0||strcmp(kapi->isim,"nor")==0){
 
     if(deger==kapi->cikis_degeri)return 0;
 
+    saniyeayarlama(kapi);
+    OnOff(kapi->cikis_isim,1);
+
+    kapi->acikkapali=0;
+    kapi->sure=kapi->gecikme_suresi;
     sprintf(temp,"%dns: %c %d->%d\n", saniye,kapi->cikis_isim,deger,kapi->cikis_degeri);
     strcat(olaylar,temp);
-    saniye++;
+   // saniye++;
 
 
 
@@ -530,9 +587,15 @@ else if(strcmp(kapi->isim,"OR")==0||strcmp(kapi->isim,"or")==0){
 
     if(deger==kapi->cikis_degeri)return 0;
 
+    saniyeayarlama(kapi);
+    OnOff(kapi->cikis_isim,1);
+
+
+    kapi->acikkapali=0;
+    kapi->sure=kapi->gecikme_suresi;
     sprintf(temp,"%dns: %c %d->%d\n", saniye,kapi->cikis_isim,deger,kapi->cikis_degeri);
     strcat(olaylar,temp);
-    saniye++;
+    //saniye++;
 
 
 
@@ -544,9 +607,16 @@ if(kapi->giris_degerleri[0]==kapi->giris_degerleri[1])degerdegistir(kapi->cikis_
 else degerdegistir(kapi->cikis_isim,1);
 
     if(deger==kapi->cikis_degeri)return 0;
+
+    saniyeayarlama(kapi);
+    OnOff(kapi->cikis_isim,1);
+
+
+    kapi->acikkapali=0;
+    kapi->sure=kapi->gecikme_suresi;
     sprintf(temp,"%dns: %c %d->%d\n", saniye,kapi->cikis_isim,deger,kapi->cikis_degeri);
     strcat(olaylar,temp);
-    saniye++;
+    //saniye++;
 
 }
 else if(strcmp(kapi->isim,"NAND")==0||strcmp(kapi->isim,"nand")==0){
@@ -561,10 +631,16 @@ else if(strcmp(kapi->isim,"NAND")==0||strcmp(kapi->isim,"nand")==0){
 
     if(deger==kapi->cikis_degeri)return 0;
 
-        //printf("\n %c=%d %c=%d \nsonuc=%d\n",kapi->giris_isimleri[0],kapi->giris_degerleri[0],kapi->giris_isimleri[1],kapi->giris_degerleri[1],sonuc);
+    saniyeayarlama(kapi);
+    OnOff(kapi->cikis_isim,1);
+
+
+    kapi->acikkapali=0;
+    kapi->sure=kapi->gecikme_suresi;
+    //printf("\n %c=%d %c=%d \nsonuc=%d\n",kapi->giris_isimleri[0],kapi->giris_degerleri[0],kapi->giris_isimleri[1],kapi->giris_degerleri[1],sonuc);
     sprintf(temp,"%dns: %c %d->%d\n", saniye,kapi->cikis_isim,deger,kapi->cikis_degeri);
     strcat(olaylar,temp);
-    saniye++;
+    //saniye++;
 
 
 
@@ -576,9 +652,16 @@ if(kapi->giris_degerleri[0]==0)degerdegistir(kapi->cikis_isim,1);
 else degerdegistir(kapi->cikis_isim,0);
 
     if(deger==kapi->cikis_degeri)return 0;
+
+    saniyeayarlama(kapi);
+    OnOff(kapi->cikis_isim,1);
+
+
+    kapi->acikkapali=0;
+    kapi->sure=kapi->gecikme_suresi;
     sprintf(temp,"%dns: %c %d->%d\n", saniye,kapi->cikis_isim,deger,kapi->cikis_degeri);
     strcat(olaylar,temp);
-    saniye++;
+    //saniye++;
 
 }
 else if(strcmp(kapi->isim,"EXOR")==0||strcmp(kapi->isim,"exor")==0){
@@ -588,9 +671,16 @@ else if(strcmp(kapi->isim,"EXOR")==0||strcmp(kapi->isim,"exor")==0){
     else degerdegistir(kapi->cikis_isim,1);
 
     if(deger==kapi->cikis_degeri)return 0;
+
+    saniyeayarlama(kapi);
+    OnOff(kapi->cikis_isim,1);
+
+
+    kapi->acikkapali=0;
+    kapi->sure=kapi->gecikme_suresi;
     sprintf(temp,"%dns: %c %d->%d\n", saniye,kapi->cikis_isim,deger,kapi->cikis_degeri);
     strcat(olaylar,temp);
-    saniye++;
+    //saniye++;
 
 }
 
@@ -609,6 +699,7 @@ int indexbul(char *dizi,char a){
 
 void degerdegistir(char isim,int yenideger){
 
+/*
 
     for (int i = 0; i <devre->kapi_sayisi ; ++i) {
         if(devre->kapilar[i].giris_isimleri[indexbul(devre->kapilar[i].giris_isimleri,isim)]!=-1)
@@ -628,6 +719,26 @@ void degerdegistir(char isim,int yenideger){
             devre->cikis_degerleri[indexbul(devre->cikis_isimleri,isim)]=yenideger;
 
     }
+*/
 
+
+    for (int i = 0; i <devre->kapi_sayisi ; ++i) {
+        if(indexbul(devre->kapilar[i].giris_isimleri,isim)!=-1)
+            devre->kapilar[i].giris_degerleri[indexbul(devre->kapilar[i].giris_isimleri,isim)]=yenideger;
+
+        if(devre->kapilar[i].cikis_isim==isim)devre->kapilar[i].cikis_degeri=yenideger;
+    }
+
+    for (int j = 0; j <devre->giris_sayisi ; ++j) {
+        if(indexbul(devre->kapilar[j].giris_isimleri,isim)!=-1)
+            devre->giris_degerleri[indexbul(devre->giris_isimleri,isim)]=yenideger;
+
+    }
+
+    for (int j = 0; j <devre->cikis_sayisi ; ++j) {
+        if(indexbul(devre->kapilar[j].giris_isimleri,isim)!=-1)
+            devre->cikis_degerleri[indexbul(devre->cikis_isimleri,isim)]=yenideger;
+
+    }
 
 }
