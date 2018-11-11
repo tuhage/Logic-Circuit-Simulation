@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include "stdlib.h"
 #include "string.h"
+
+
 #define BOYUT 256
 #define BOYUT2 500
+#define KOMUTBOYUT 100
 
 
 struct KAPI{
@@ -39,6 +42,8 @@ void kapilarisirala();
 void kapilarisirala2();
 int giris_var_mi(char giris);
 int uc_var_mi(char giris);
+int birdenfazlakontrolu(char *uclar);
+void arabulyaz(char *uclar);
 void devresimulasyonu(char *degisecekuclar,int durum);
 void saniyeayarlama(struct KAPI *kapi);
 void OnOff(char isim,int onoff);
@@ -209,6 +214,7 @@ else if(komut[0]=='I'||komut[0]=='i'){
 
 else if(komut[0]=='H'||komut[0]=='h') //verilen uçları lojik-1 yapar.
 {
+    //h komutunun başı
 
     int uc_sayisi=0,kontrol=0;
 
@@ -219,10 +225,9 @@ else if(komut[0]=='H'||komut[0]=='h') //verilen uçları lojik-1 yapar.
 
     for (int i = 1; i <strlen(komut) ; ++i) { //uc sayisi bulunur.
 
-        if(komut[i]==' ')continue; // bosluklar atlanir.
+        if(komut[i]==' '||komut[i]=='\t')continue; // bosluklar atlanir.
 
         kontrol=giris_var_mi(komut[i]); //giris ucunun devrede bulunup bulunmadığını konrol eden fonksiyon
-
         if(kontrol==0)
         {
             printf("Girdiginiz giris ucu devrede bulunmamaktadir.");
@@ -238,22 +243,29 @@ else if(komut[0]=='H'||komut[0]=='h') //verilen uçları lojik-1 yapar.
          {
 
 
-        if(komut[i]==' ')continue;
+        if(komut[i]==' '||komut[i]=='\t')continue;
 
         degisecekuclar[j]=komut[i];
         j++;
 
     }
+    if(birdenfazlakontrolu(degisecekuclar)){
+        printf("Aynı uç birden fazla girilemez.");
+        return 0;
+    }
+
 
 
     devresimulasyonu(degisecekuclar,1);
 
 
 
-
+// h komutunun sonu
     return 1;
 }
 else if(komut[0]=='L'||komut[0]=='l'){  // verilen uçları lojik 0 yapar.
+
+    //l komutunun başı
 
     int uc_sayisi=0,kontrol=0;
 
@@ -264,7 +276,7 @@ else if(komut[0]=='L'||komut[0]=='l'){  // verilen uçları lojik 0 yapar.
 
     for (int i = 1; i <strlen(komut) ; ++i) { //uc sayisi bulunur.
 
-        if(komut[i]==' ')continue; // bosluklar atlanir.
+        if(komut[i]==' '||komut[i]=='\t')continue; // bosluklar atlanir.
 
         kontrol=giris_var_mi(komut[i]); //giris ucunun devrede bulunup bulunmadığını konrol eden fonksiyon
 
@@ -283,27 +295,36 @@ else if(komut[0]=='L'||komut[0]=='l'){  // verilen uçları lojik 0 yapar.
     {
 
 
-        if(komut[i]==' ')continue;
+        if(komut[i]==' '||komut[i]=='\t')continue;
 
         degisecekuclar[j]=komut[i];
         j++;
 
     }
+    if(birdenfazlakontrolu(degisecekuclar)){
+        printf("Aynı uç birden fazla girilemez.");
+        return 0;
+    }
+
 
 
     devresimulasyonu(degisecekuclar,0);
 
 
+    //l komutunun sonu
     return 1;
 }
 else if(komut[0]=='S'||komut[0]=='s'){ //gerçekleşen olayları yazar.
+
 
     printf("%s",olaylar);
     strcpy(olaylar,"");
     saniye=0;
     return 1;
 }
-else if(komut[0]=='G'||komut[0]=='g'){
+else if(komut[0]=='G'||komut[0]=='g')
+{
+    //g komutunun başı
 
     int uc_sayisi=0,kontrol=0;
 
@@ -312,7 +333,7 @@ else if(komut[0]=='G'||komut[0]=='g'){
     }
     else if(komut[1]=='*'){
 
-        /*hepsini yazacak*/
+        arabulyaz("all");
         return 1;
     }
 
@@ -324,7 +345,7 @@ else if(komut[0]=='G'||komut[0]=='g'){
 
     for (int i = 1; i <strlen(komut) ; ++i) { //uc sayisi bulunur.
 
-        if(komut[i]==' ')continue; // bosluklar atlanir.
+        if(komut[i]==' '||komut[i]=='\t')continue; // bosluklar atlanir.
 
         kontrol=uc_var_mi(komut[i]); //giris ucunun devrede bulunup bulunmadığını konrol eden fonksiyon
 
@@ -343,7 +364,7 @@ else if(komut[0]=='G'||komut[0]=='g'){
     {
 
 
-        if(komut[i]==' ')continue;
+        if(komut[i]==' '||komut[i]=='\t')continue;
 
         uclar[j]=komut[i];
         j++;
@@ -351,19 +372,60 @@ else if(komut[0]=='G'||komut[0]=='g'){
     }
 
 
-
+        arabulyaz(uclar);
 
 
     return 1;
+
+    //g komutunun sonu
 }
 else if(komut[0]=='K'||komut[0]=='k'){
+
+    //k komutunun başı
+
+    char dosyaadi[strlen(komut)-1],komut2[KOMUTBOYUT]; int k=0;
+
+    if(komut[1]!=' ')return 0;
+
+    for (int i = 2; i <strlen(komut) ; ++i) {
+        dosyaadi[k]=komut[i];
+        k++;
+    }
+    dosyaadi[k]='\0';
+
+    FILE *komutdosyasi;
+
+    if(!(komutdosyasi=fopen(dosyaadi,"r"))){
+        printf("Dosya acilamadi.");return 0;
+    }
+
+
+
+    while(!(feof(komutdosyasi))){
+
+        fgets(komut2,KOMUTBOYUT,komutdosyasi);
+        if(komut2[strlen(komut2)-1]=='\n')
+        komut2[strlen(komut2)-1]='\0';
+        printf("\n>%s\n",komut2);
+        komutcalistir(komut2);
+
+
+    }
+
+
+
+
+
+
+
+    //k komutunun sonu
 
     return 1;
 }
 else if(komut[0]=='C'||komut[0]=='c'){
 
 if(strlen(komut)>1)return 0;
-    return 1;
+    exit(1);
 }
 
     return 0;
@@ -436,7 +498,7 @@ int uc_var_mi(char giris){
 
     int kontrol=0;
     for (int i = 0; i <devre->giris_sayisi ; ++i) {
-        if(devre->cikis_isimleri[i]==giris)kontrol++;
+        if(devre->giris_isimleri[i]==giris)kontrol++;
     }
     for (int j = 0; j <devre->kapi_sayisi ; ++j) {
         if(devre->kapilar[j].cikis_isim==giris)kontrol++;
@@ -446,9 +508,67 @@ int uc_var_mi(char giris){
 
 
 }
+int birdenfazlakontrolu(char *uclar){
+
+    for (int i = 0; i <strlen(uclar) ; ++i) {
+        for (int j = i+1; j <strlen(uclar) ; ++j) {
+
+            if(uclar[i]==uclar[j])return 1;
+
+        }
+
+
+
+    }
+     return 0;
+
+
+
+
+}
+
+void arabulyaz(char *uclar){
+
+if(strcmp(uclar,"all")==0){
+
+    for (int j = 0; j <devre->giris_sayisi ; ++j) {
+            printf("%c: %d\n",devre->giris_isimleri[j],devre->giris_degerleri[j]);
+    }
+
+    for (int j = 0; j <devre->kapi_sayisi ; ++j) {
+
+          printf("%c: %d\n",devre->kapilar[j].cikis_isim,devre->kapilar[j].cikis_degeri);
+
+    }
+
+    return 1;
+}
+    for (int i = 0; i <strlen(uclar) ; ++i) {
+        for (int j = 0; j <devre->giris_sayisi ; ++j) {
+
+            if(uclar[i]==devre->giris_isimleri[j]){
+
+                printf("%c: %d\n",uclar[i],devre->giris_degerleri[j]);
+
+            }
+        }
+    }
+
+    for (int i = 0; i <strlen(uclar) ; ++i) {
+        for (int j = 0; j <devre->kapi_sayisi ; ++j) {
+
+            if(uclar[i]==devre->kapilar[j].cikis_isim){
+
+                printf("%c: %d\n",uclar[i],devre->kapilar[j].cikis_degeri);
+
+            }
+        }
+    }
+
+}
 
 void devresimulasyonu(char *degisecekuclar,int durum){
- char temp[BOYUT2];int kontrol=0;
+ char temp[BOYUT];int kontrol=0;
 
     if(durum==1) {
 
@@ -551,7 +671,7 @@ void OnOff(char isim,int onoff){
 
 int kapiyicalistir(struct KAPI *kapi){ // kapıyı çalışıtırır mantıksal işlemleri yapar ve kapının çıkış değerini değiştirir.
 
-    char temp[BOYUT2];int sonuc=kapi->giris_degerleri[0], deger=kapi->cikis_degeri;
+    char temp[BOYUT];int sonuc=kapi->giris_degerleri[0], deger=kapi->cikis_degeri;
 
 
 if(strcmp(kapi->isim,"AND")==0||strcmp(kapi->isim,"and")==0){
