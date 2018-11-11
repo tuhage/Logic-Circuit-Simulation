@@ -36,8 +36,10 @@ struct DEVRE {
 struct DEVRE *devre ;
 char olaylar[BOYUT2];
 int saniye=0;
-time_t t;
-struct tm zaman;
+
+time_t t;          //     -__Kaynak__- (log.txt içine tarih yazmak için kullanıldı)
+struct tm zaman;  // https://stackoverflow.com/questions/1442116/how-to-get-the-date-and-time-values-in-a-c-program
+
 FILE *log;
 
 int komutcalistir(const char *komut);
