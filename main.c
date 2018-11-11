@@ -36,6 +36,7 @@ int saniye=0;
 
 int komutcalistir(const char *komut);
 void kapilarisirala();
+void kapilarisirala2();
 int giris_var_mi(char giris);
 int uc_var_mi(char giris);
 void devresimulasyonu(char *degisecekuclar,int durum);
@@ -75,9 +76,9 @@ int main() {
     devre->kapilar[1].giris_sayisi=2;
     devre->kapilar[2].giris_sayisi=2;
 
-    devre->kapilar[0].gecikme_suresi=3;
-    devre->kapilar[1].gecikme_suresi=1;
-    devre->kapilar[2].gecikme_suresi=2;
+    devre->kapilar[0].gecikme_suresi=5;
+    devre->kapilar[1].gecikme_suresi=3;
+    devre->kapilar[2].gecikme_suresi=1;
 
     devre->kapilar[0].sure=devre->kapilar[0].gecikme_suresi;
     devre->kapilar[1].sure=devre->kapilar[1].gecikme_suresi;
@@ -392,6 +393,29 @@ void kapilarisirala(){
     //  printf("%s , %d \n%s , %d \n%s , %d \n",devre->kapilar[0].isim,devre->kapilar[0].gecikme_suresi,devre->kapilar[1].isim,devre->kapilar[1].gecikme_suresi,devre->kapilar[2].isim,devre->kapilar[2].gecikme_suresi);
 
 }
+void kapilarisirala2(){
+
+    struct KAPI temp;
+
+    for (int i = 0; i < devre->kapi_sayisi; ++i) {  //Burada gecikme süresine göre kapilar siralaniyor.(Bubble Short)
+
+        for (int j = 0; j < devre->kapi_sayisi; ++j) {
+
+            if (devre->kapilar[i].sure < devre->kapilar[j].sure) {
+
+                temp = devre->kapilar[i];
+                devre->kapilar[i] = devre->kapilar[j];
+                devre->kapilar[j] = temp;
+
+            }
+
+        }
+
+    }
+
+    //  printf("%s , %d \n%s , %d \n%s , %d \n",devre->kapilar[0].isim,devre->kapilar[0].gecikme_suresi,devre->kapilar[1].isim,devre->kapilar[1].gecikme_suresi,devre->kapilar[2].isim,devre->kapilar[2].gecikme_suresi);
+
+}
 
 
 int giris_var_mi(char giris){
@@ -443,11 +467,12 @@ void devresimulasyonu(char *degisecekuclar,int durum){
 
             if(kapiyicalistir(&(devre->kapilar[j]))){
                 kontrol++;
+                kapilarisirala2();
             }
 
             if(j==devre->kapi_sayisi-1)
                 if(kontrol!=0){
-                    j=0;
+                    j=-1;
                     kontrol=0;
 
                 }
@@ -464,17 +489,21 @@ void devresimulasyonu(char *degisecekuclar,int durum){
             strcat(olaylar,temp);
             //  saniye++;  ilk atamada saniye değeri hep 0 fakat bu yorum satırı kaldırılırsa değer arttırılır.
             degerdegistir(degisecekuclar[i],0);
+            OnOff(degisecekuclar[i],1);
 
         }
 
 
         for (int j = 0; j <devre->kapi_sayisi ; ++j) {
 
-            if(kapiyicalistir(&(devre->kapilar[j])))kontrol++;
+            if(kapiyicalistir(&(devre->kapilar[j]))){
+                kontrol++;
+                kapilarisirala2();
+            }
 
             if(j==devre->kapi_sayisi-1)
                 if(kontrol!=0){
-                    j=0;
+                    j=-1;
                     kontrol=0;
 
                 }
