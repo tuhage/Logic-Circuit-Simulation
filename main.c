@@ -403,7 +403,7 @@ int komutcalistir(const char *komut){
                     k=0;
                     continue;
                 }
-                fprintf(log,"%60s\n",temp);
+                fprintf(log,"%49s%s\n","",temp);
                 strcpy(temp,"");
                 k=0;
             }

@@ -1,20 +1,38 @@
        Zaman                  Komut                 Cikti
 ------------------         -------------         ------------------------
-2018/11/12-3:27:56         k komut.txt           komut dosyasi alindi.
-2018/11/12-3:27:56         H  b                  b girisi birlendi
-2018/11/12-3:27:56         S                     0ns: b 0->1
+2018/11/12-3:39:47         h b                   b girisi birlendi
+2018/11/12-3:39:47         ga                    a: 0
+2018/11/12-3:39:50         ha                    a girisi birlendi
+2018/11/12-3:39:51         s                     0ns: b 0->1
                                                  3ns: e 1->0
                                                  4ns: f 0->1
                                                  5ns: d 1->0
                                                  6ns: f 1->0
-2018/11/12-3:27:56         G*                    a: 0
-                                                 b: 1
-                                                 c: 1
-                                                 f: 0
-                                                 e: 0
-                                                 d: 0
-2018/11/12-3:27:56         H a                   a girisi birlendi
-2018/11/12-3:27:56         S                     0ns: a 0->1
-2018/11/12-3:27:56         G e a                 a: 1
-                                                 e: 0
-2018/11/12-3:27:56         C                     program sonlandirildi
+                                                 6ns: a 0->1
+2018/11/12-3:39:53         h b                   b girisi birlendi
+2018/11/12-3:39:55         h a                   a girisi birlendi
+2018/11/12-3:39:55         s                     0ns: b 1->1
+                                                 0ns: a 1->1
+2018/11/12-3:40:0          lb                    b girisi sıfırlandı
+2018/11/12-3:40:1          s                     0ns: b 1->0
+                                                 3ns: e 0->1
+                                                 4ns: f 0->1
+2018/11/12-3:40:3          h b                   b girisi birlendi
+2018/11/12-3:40:4          lb                    b girisi sıfırlandı
+2018/11/12-3:40:5          s                     0ns: b 0->1
+                                                 3ns: e 1->0
+                                                 4ns: f 1->0
+                                                 4ns: b 1->0
+                                                 7ns: e 0->1
+                                                 8ns: f 0->1
+2018/11/12-3:40:8          la                    a girisi sıfırlandı
+2018/11/12-3:40:11         hb                    b girisi birlendi
+2018/11/12-3:40:12         s                     0ns: a 1->0
+                                                 -7ns: d 0->1
+                                                 -6ns: f 1->0
+                                                 -6ns: b 0->1
+                                                 -3ns: e 1->0
+                                                 -2ns: f 0->1
+                                                 -1ns: d 1->0
+                                                 0ns: f 1->00
+2018/11/12-3:40:12         c                     program sonlandirildi
