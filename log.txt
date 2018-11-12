@@ -1,0 +1,20 @@
+       Zaman                  Komut                 Cikti
+------------------         -------------         ------------------------
+2018/11/12-3:27:56         k komut.txt           komut dosyasi alindi.
+2018/11/12-3:27:56         H  b                  b girisi birlendi
+2018/11/12-3:27:56         S                     0ns: b 0->1
+                                                 3ns: e 1->0
+                                                 4ns: f 0->1
+                                                 5ns: d 1->0
+                                                 6ns: f 1->0
+2018/11/12-3:27:56         G*                    a: 0
+                                                 b: 1
+                                                 c: 1
+                                                 f: 0
+                                                 e: 0
+                                                 d: 0
+2018/11/12-3:27:56         H a                   a girisi birlendi
+2018/11/12-3:27:56         S                     0ns: a 0->1
+2018/11/12-3:27:56         G e a                 a: 1
+                                                 e: 0
+2018/11/12-3:27:56         C                     program sonlandirildi
