@@ -152,7 +152,8 @@ int main() {
     if(!(log=fopen("log.txt","w"))){
         printf("Log dosyasi acilamadi.");
     }
-    fprintf(log,"        Zaman        Komut        Cikti\n");
+    fprintf(log,"       Zaman                  Komut                 Cikti\n");
+    fprintf(log,"------------------         -------------         ------------------------\n");
 
     do {
 
@@ -237,7 +238,7 @@ int komutcalistir(const char *komut){
         t = time(NULL);
         zaman = *localtime(&t);
 
-        fprintf(log, "%d/%d/%d-%d:%d:%-5d %-8s ", zaman.tm_year + 1900, zaman.tm_mon + 1, zaman.tm_mday,
+        fprintf(log, "%d/%d/%d-%d:%d:%-10d %-21s ", zaman.tm_year + 1900, zaman.tm_mon + 1, zaman.tm_mday,
                 zaman.tm_hour, zaman.tm_min, zaman.tm_sec, komut);
 
 
@@ -310,7 +311,7 @@ int komutcalistir(const char *komut){
         t = time(NULL);
         zaman = *localtime(&t);
 
-        fprintf(log, "%d/%d/%d-%d:%d:%-5d %-8s ", zaman.tm_year + 1900, zaman.tm_mon + 1, zaman.tm_mday,
+        fprintf(log, "%d/%d/%d-%d:%d:%-10d %-21s ", zaman.tm_year + 1900, zaman.tm_mon + 1, zaman.tm_mday,
                 zaman.tm_hour, zaman.tm_min, zaman.tm_sec, komut);
 
 
@@ -378,12 +379,14 @@ int komutcalistir(const char *komut){
         return 1;
     }
     else if(komut[0]=='S'||komut[0]=='s'){ //gerçekleşen olayları yazar.
+        //s komutunun başı
+
         char temp[BOYUT2];int k=0,k1=0;
 
         t = time(NULL);
         zaman = *localtime(&t);
 
-        fprintf(log, "%d/%d/%d-%d:%d:%-5d %-8s ", zaman.tm_year + 1900, zaman.tm_mon + 1, zaman.tm_mday,
+        fprintf(log, "%d/%d/%d-%d:%d:%-10d %-21s ", zaman.tm_year + 1900, zaman.tm_mon + 1, zaman.tm_mday,
                 zaman.tm_hour, zaman.tm_min, zaman.tm_sec, komut);
 
         for (int i = 0; i <strlen(olaylar) ; ++i) {
@@ -400,7 +403,7 @@ int komutcalistir(const char *komut){
                     k=0;
                     continue;
                 }
-                fprintf(log,"%42s\n",temp);
+                fprintf(log,"%60s\n",temp);
                 strcpy(temp,"");
                 k=0;
             }
@@ -416,7 +419,7 @@ int komutcalistir(const char *komut){
         //g komutunun başı
 
 
-        fprintf(log, "%d/%d/%d-%d:%d:%-5d %-8s ", zaman.tm_year + 1900, zaman.tm_mon + 1, zaman.tm_mday,
+        fprintf(log, "%d/%d/%d-%d:%d:%-10d %-21s ", zaman.tm_year + 1900, zaman.tm_mon + 1, zaman.tm_mday,
                 zaman.tm_hour, zaman.tm_min, zaman.tm_sec, komut);
 
 
@@ -481,7 +484,7 @@ int komutcalistir(const char *komut){
         t = time(NULL);
         zaman = *localtime(&t);
 
-        fprintf(log, "%d/%d/%d-%d:%d:%-5d %-8s ", zaman.tm_year + 1900, zaman.tm_mon + 1, zaman.tm_mday,
+        fprintf(log, "%d/%d/%d-%d:%d:%-10d %-21s ", zaman.tm_year + 1900, zaman.tm_mon + 1, zaman.tm_mday,
                 zaman.tm_hour, zaman.tm_min, zaman.tm_sec, komut);
 
 
@@ -509,7 +512,12 @@ int komutcalistir(const char *komut){
             fgets(komut2,KOMUTBOYUT,komutdosyasi);
             if(komut2[strlen(komut2)-1]=='\n')
                 komut2[strlen(komut2)-1]='\0';
+            for (int i = 0; i <strlen(komut2) ; ++i) {
+                if(komut2[i]=='\t')komut2[i]=' ';
+            }
+            if(strcmp(komut2,"")==0)continue;
             printf("\n>%s\n",komut2);
+
             komutcalistir(komut2);
 
 
@@ -526,7 +534,7 @@ int komutcalistir(const char *komut){
         return 1;
     }
     else if(komut[0]=='C'||komut[0]=='c'){
-        fprintf(log, "%d/%d/%d-%d:%d:%-5d %-8s program sonlandirildi", zaman.tm_year + 1900, zaman.tm_mon + 1, zaman.tm_mday,
+        fprintf(log, "%d/%d/%d-%d:%d:%-10d %-21s program sonlandirildi", zaman.tm_year + 1900, zaman.tm_mon + 1, zaman.tm_mday,
                 zaman.tm_hour, zaman.tm_min, zaman.tm_sec, komut);
 
         if(strlen(komut)>1)return 0;
@@ -536,7 +544,7 @@ int komutcalistir(const char *komut){
     t = time(NULL);
     zaman = *localtime(&t);
 
-    fprintf(log, "%d/%d/%d-%d:%d:%-5d %-8s ", zaman.tm_year + 1900, zaman.tm_mon + 1, zaman.tm_mday,
+    fprintf(log, "%d/%d/%d-%d:%d:%-10d %-21s ", zaman.tm_year + 1900, zaman.tm_mon + 1, zaman.tm_mday,
             zaman.tm_hour, zaman.tm_min, zaman.tm_sec, komut);
 
     return 0;
@@ -646,13 +654,13 @@ void arabulyaz(char *uclar){
             printf("%c: %d\n",devre->giris_isimleri[j],devre->giris_degerleri[j]);
 
             if(j==0)fprintf(log,"%c: %d\n",devre->giris_isimleri[j],devre->giris_degerleri[j]);
-            else fprintf(log,"%32c: %d\n",devre->giris_isimleri[j],devre->giris_degerleri[j]);
+            else fprintf(log,"%50c: %d\n",devre->giris_isimleri[j],devre->giris_degerleri[j]);
         }
 
         for (int j = 0; j <devre->kapi_sayisi ; ++j) {
 
             printf("%c: %d\n",devre->kapilar[j].cikis_isim,devre->kapilar[j].cikis_degeri);
-            fprintf(log,"%32c: %d\n",devre->kapilar[j].cikis_isim,devre->kapilar[j].cikis_degeri);
+            fprintf(log,"%50c: %d\n",devre->kapilar[j].cikis_isim,devre->kapilar[j].cikis_degeri);
 
         }
 
@@ -668,7 +676,7 @@ void arabulyaz(char *uclar){
                 if(k==0){
                     fprintf(log,"%c: %d\n",uclar[i],devre->giris_degerleri[j]);
                     k++;
-                }else fprintf(log,"%32c: %d\n",uclar[i],devre->giris_degerleri[j]);
+                }else fprintf(log,"%50c: %d\n",uclar[i],devre->giris_degerleri[j]);
             }
         }
     }
@@ -682,7 +690,7 @@ void arabulyaz(char *uclar){
                 if(k==0){
                     fprintf(log,"%c: %d\n",uclar[i],devre->kapilar[j].cikis_degeri);
                     k++;
-                }else fprintf(log,"%32c: %d\n",uclar[i],devre->kapilar[j].cikis_degeri);
+                }else fprintf(log,"%50c: %d\n",uclar[i],devre->kapilar[j].cikis_degeri);
             }
         }
     }
