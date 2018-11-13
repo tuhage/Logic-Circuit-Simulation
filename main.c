@@ -6,7 +6,7 @@
 #define BOYUT 256
 #define BOYUT2 500
 #define KOMUTBOYUT 100
-
+#define SATIRBOYUT 100
 
 struct KAPI{
     char isim[4];
@@ -55,6 +55,8 @@ void OnOff(char isim,int onoff);
 int kapiyicalistir(struct KAPI *kapi);
 int indexbul(char *dizi,char a);
 void degerdegistir(char isim,int yenideger);
+void kapisayisibul(FILE *devredosyasi);
+void Ykomutu_satirislem(const char * satir);
 
 int main() {
 
@@ -187,6 +189,57 @@ int main() {
 int komutcalistir(const char *komut){
 
     if(komut[0]=='Y'||komut[0]=='y'){
+        // y komutunun basi
+
+        t = time(NULL);
+        zaman = *localtime(&t);
+
+        fprintf(log, "%d/%d/%d-%d:%d:%-10d %-21s ", zaman.tm_year + 1900, zaman.tm_mon + 1, zaman.tm_mday,
+                zaman.tm_hour, zaman.tm_min, zaman.tm_sec, komut);
+
+
+        char dosyaadi[strlen(komut)-1],satir[SATIRBOYUT];int k=0;
+
+        if(komut[1]!=' ')return 0;
+
+        for (int i = 2; i <strlen(komut) ; ++i) {
+            dosyaadi[k]=komut[i];
+            k++;
+        }
+        dosyaadi[k]='\0';
+
+        FILE *devredosyasi;
+
+        if(!(devredosyasi=fopen(dosyaadi,"r"))){
+            fprintf(log,"Dosya acilamadi.\n");
+            printf("Dosya acilamadi.");return 0;
+        }else fprintf(log,"devre dosyasi alindi.\n");
+
+
+        kapisayisibul(devredosyasi);
+        rewind(devredosyasi);//devrenin basina donuyor.
+
+        while(fgets(satir,SATIRBOYUT,devredosyasi)!=NULL){
+
+            if(satir[strlen(satir)-1]=='\n')
+                satir[strlen(satir)-1]='\0';
+            for (int i = 0; i <strlen(satir) ; ++i) {
+                if(satir[i]=='\t')satir[i]=' ';
+            }
+
+
+
+
+
+
+            if(strcmp(satir,"")==0)continue;
+
+            Ykomutu_satirislem(satir);
+            printf("\n>%s\n",satir);
+
+
+        }
+
         /*
          *
          *
@@ -507,9 +560,8 @@ int komutcalistir(const char *komut){
 
 
 
-        while(!(feof(komutdosyasi))){
+        while(fgets(komut2,KOMUTBOYUT,komutdosyasi)!=NULL){
 
-            fgets(komut2,KOMUTBOYUT,komutdosyasi);
             if(komut2[strlen(komut2)-1]=='\n')
                 komut2[strlen(komut2)-1]='\0';
             for (int i = 0; i <strlen(komut2) ; ++i) {
@@ -534,6 +586,10 @@ int komutcalistir(const char *komut){
         return 1;
     }
     else if(komut[0]=='C'||komut[0]=='c'){
+
+        t = time(NULL);
+        zaman = *localtime(&t);
+
         fprintf(log, "%d/%d/%d-%d:%d:%-10d %-21s program sonlandirildi", zaman.tm_year + 1900, zaman.tm_mon + 1, zaman.tm_mday,
                 zaman.tm_hour, zaman.tm_min, zaman.tm_sec, komut);
 
@@ -1019,5 +1075,102 @@ void degerdegistir(char isim,int yenideger){
             devre->cikis_degerleri[indexbul(devre->cikis_isimleri,isim)]=yenideger;
 
     }
+
+}
+
+void kapisayisibul(FILE *devredosyasi){
+
+    char satir[SATIRBOYUT];int k=0,girissayisi=0,kontrol=0;
+
+    while(fgets(satir,SATIRBOYUT,devredosyasi)!=NULL){
+
+        if(satir[strlen(satir)-1]=='\n')
+            satir[strlen(satir)-1]='\0';
+        for (int i = 0; i <strlen(satir) ; ++i) {
+            if(satir[i]=='\t')satir[i]=' ';
+        }
+
+
+
+
+
+
+        if(strcmp(satir,"")==0)continue;
+
+        if(strstr(satir,".kapi")!=NULL)k++;
+
+
+
+
+    }
+
+    devre->kapi_sayisi=k;
+    devre->kapilar=(struct KAPI*)malloc(devre->kapi_sayisi * sizeof(struct KAPI));
+    printf("kapı = %d",devre->kapi_sayisi);
+    rewind(devredosyasi);
+        k=0;
+    while(fgets(satir,SATIRBOYUT,devredosyasi)!=NULL){
+
+        if(satir[strlen(satir)-1]=='\n')
+            satir[strlen(satir)-1]='\0';
+        for (int i = 0; i <strlen(satir) ; ++i) {
+            if(satir[i]=='\t')satir[i]=' ';
+        }
+
+
+
+
+
+
+        if(strcmp(satir,"")==0)continue;
+
+        if(strstr(satir,".kapi")!=NULL){
+            if(strstr(satir,"NOR")!=NULL){
+                for (int i = 3; i <strlen(satir) ; ++i) {
+
+
+
+                }
+
+            }
+
+
+        }
+
+
+
+
+    }
+
+
+}
+
+void Ykomutu_satirislem(const char * satir){
+
+    if( strstr(satir,".giris")!=NULL){
+       int i=0,k=0;
+        for (int j = 0; j <strlen(satir) ; ++j) {
+
+            if(satir[j]==' '){
+                i=j;
+                break;
+            }
+        }
+        for (int j=i+1; j <strlen(satir) ; ++j) {
+            if(satir[j]==' ')continue;
+            if(satir[j]=='#')break;
+            k++;
+
+        }
+        devre->giris_sayisi=k;
+        devre->giris_isimleri=(char*)malloc(sizeof(char)*devre->giris_sayisi);
+        devre->giris_degerleri=(int*)malloc(devre->giris_sayisi * sizeof(int));
+
+        printf("giris= %d \n",devre->giris_sayisi);
+    }
+
+
+
+
 
 }
