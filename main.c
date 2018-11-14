@@ -57,7 +57,11 @@ int kapiyicalistir(struct KAPI *kapi);
 int indexbul(char *dizi,char a);
 void degerdegistir(char isim,int yenideger);
 void kapisayisibul(FILE *devredosyasi);
+void includer(char *satir,char dosyaadi[25]);
 void Ykomutu_satirislem(const char * satir);
+void devreyi_yaz(struct DEVRE *devre);
+void includeYkomutu_satirislem(const char * satir);
+void includekapisayisibul(FILE *devredosyasi);
 
 int main() {
 
@@ -148,6 +152,8 @@ int komutcalistir(const char *komut){
         kapisayisibul(devredosyasi);
         rewind(devredosyasi);//devrenin basina donuyor.
 
+        char baskadosyaadi[25];
+        strcpy(baskadosyaadi,"");
         while(fgets(satir,SATIRBOYUT,devredosyasi)!=NULL){
 
             if(satir[strlen(satir)-1]=='\n')
@@ -163,8 +169,61 @@ int komutcalistir(const char *komut){
 
             if(strcmp(satir,"")==0)continue;
 
+            if(strstr(satir,".include")!=NULL){
+             includer(satir,baskadosyaadi);
+
+                continue;
+            }
+
             Ykomutu_satirislem(satir);
 
+
+
+        }
+
+        while(strcmp(baskadosyaadi,"")!=0){
+            t = time(NULL);
+            zaman = *localtime(&t);
+
+            fprintf(log, "%d/%d/%d-%d:%d:%-10d %-21s ", zaman.tm_year + 1900, zaman.tm_mon + 1, zaman.tm_mday,
+                    zaman.tm_hour, zaman.tm_min, zaman.tm_sec, komut);
+
+            if(!(devredosyasi=fopen(baskadosyaadi,"r"))){
+                fprintf(log,"Baska dosya acilamadi.\n");
+                printf("Dosya acilamadi.");return 0;
+            }else fprintf(log,"baska dosya eklendi.\n");
+
+
+            includekapisayisibul(devredosyasi);
+            rewind(devredosyasi);//devrenin basina donuyor.
+
+            strcpy(baskadosyaadi,"");
+
+            while(fgets(satir,SATIRBOYUT,devredosyasi)!=NULL){
+
+                if(satir[strlen(satir)-1]=='\n')
+                    satir[strlen(satir)-1]='\0';
+                for (int i = 0; i <strlen(satir) ; ++i) {
+                    if(satir[i]=='\t')satir[i]=' ';
+                }
+
+
+
+
+
+
+                if(strcmp(satir,"")==0)continue;
+
+                if(strstr(satir,".include")!=NULL){
+                    includer(satir,baskadosyaadi);
+
+                }
+
+                includeYkomutu_satirislem(satir);
+
+
+
+            }
 
 
         }
@@ -242,7 +301,7 @@ int komutcalistir(const char *komut){
         kapilarisirala();
 
 
-
+    devreyi_yaz(devre);
 
 
         return 1;
@@ -271,7 +330,7 @@ int komutcalistir(const char *komut){
         for (int i = 1; i < strlen(komut); ++i) { //uc sayisi bulunur.
 
             if (komut[i] == ' ' || komut[i] == '\t')continue; // bosluklar atlanir.
-
+            if (isalnum(komut[i-1]))continue; // bosluklar atlanir.
             kontrol = giris_var_mi(komut[i]); //giris ucunun devrede bulunup bulunmadığını konrol eden fonksiyon
             if (kontrol == 0) {
                 fprintf(log,"Girdiginiz giris ucu devrede bulunmamaktadir.");
@@ -294,7 +353,7 @@ int komutcalistir(const char *komut){
 
 
             if (komut[i] == ' ' || komut[i] == '\t')continue;
-
+            if (isalnum(komut[i-1]))continue; // bosluklar atlanir.
             degisecekuclar[j] = komut[i];
             j++;
 
@@ -343,7 +402,7 @@ int komutcalistir(const char *komut){
         for (int i = 1; i <strlen(komut) ; ++i) { //uc sayisi bulunur.
 
             if(komut[i]==' '||komut[i]=='\t')continue; // bosluklar atlanir.
-
+            if (isalnum(komut[i-1]))continue; // bosluklar atlanir.
             kontrol=giris_var_mi(komut[i]); //giris ucunun devrede bulunup bulunmadığını konrol eden fonksiyon
 
             if(kontrol==0)
@@ -369,7 +428,7 @@ int komutcalistir(const char *komut){
 
 
             if(komut[i]==' '||komut[i]=='\t')continue;
-
+            if (isalnum(komut[i-1]))continue; // bosluklar atlanir.
             degisecekuclar[j]=komut[i];
             j++;
 
@@ -1554,8 +1613,31 @@ void kapisayisibul(FILE *devredosyasi){
 
 
 }
+void includer(char *satir,char dosyaadi[25]){
+
+    satir=strstr(satir,".include");
+    satir=(satir+8);
+
+    int i=0,k=0;
+    for (int j = 0; j <strlen(satir) ; ++j) {
+
+        if(isalnum(satir[j]))break;
+        i++;
+
+
+    }
+
+    for (int l = i; l <strlen(satir) ; ++l) {
+        dosyaadi[k]=satir[l];
+        k++;
+    }
+dosyaadi[k]='\0';
+
+}
 
 void Ykomutu_satirislem(const char * satir){
+
+
 
     if( strstr(satir,".giris")!=NULL){
         int i=0,k=0;
@@ -1647,6 +1729,618 @@ void devreyi_yaz(struct DEVRE *devre){
         }
     }
 
+
+
+}
+
+
+
+void includeYkomutu_satirislem(const char * satir){
+
+    if( strstr(satir,".giris")!=NULL){
+        int i=0,k=0;
+        for (int j = 0; j <strlen(satir) ; ++j) {
+
+            if(satir[j]==' '){
+                i=j;
+                break;
+            }
+        }
+        for (int j=i+1; j <strlen(satir) ; ++j) {
+            if(satir[j]==' ')continue;
+            if(satir[j]=='#')break;
+            if(indexbul(devre->giris_isimleri,satir[j])==-1)
+            k++;
+
+        }
+        if(k==0)
+            return;
+
+        devre->giris_sayisi+=k;
+        devre->giris_isimleri=(char*)realloc(devre->giris_isimleri,sizeof(char)*devre->giris_sayisi);
+        devre->giris_degerleri=(int*)realloc( devre->giris_degerleri,devre->giris_sayisi * sizeof(int));
+        k=devre->giris_sayisi-k;
+
+        for (int l = i+1; l <strlen(satir) ; ++l) {
+            if(satir[l]==' ')continue;
+            if(satir[l]=='#')break;
+            if(indexbul(devre->giris_isimleri,satir[l])==-1){
+            devre->giris_isimleri[k]=satir[l];
+            k++;
+
+            }
+        }
+
+
+    }
+
+    else if( strstr(satir,".cikis")!=NULL){
+        int i=0,k=0;
+        for (int j = 0; j <strlen(satir) ; ++j) {
+
+            if(satir[j]==' '){
+                i=j;
+                break;
+            }
+        }
+        for (int j=i+1; j <strlen(satir) ; ++j) {
+            if(satir[j]==' ')continue;
+            if(satir[j]=='#')break;
+            if(indexbul(devre->cikis_isimleri,satir[j])==-1)
+            k++;
+
+        }
+        if(k==0)
+            return;
+
+
+        devre->cikis_sayisi+=k;
+        devre->cikis_isimleri=(char*)realloc(devre->cikis_isimleri,sizeof(char)*devre->cikis_sayisi);
+        devre->cikis_degerleri=(int*)realloc( devre->cikis_degerleri,devre->cikis_sayisi * sizeof(int));
+        k=devre->cikis_sayisi-k;
+
+        for (int l = i+1; l <strlen(satir) ; ++l) {
+            if(satir[l]==' ')continue;
+            if(satir[l]=='#')break;
+            if(indexbul(devre->cikis_isimleri,satir[l])==-1) {
+                devre->cikis_isimleri[k] = satir[l];
+
+
+                k++;
+
+            }
+        }
+
+
+    }
+
+
+
+}
+
+
+void includekapisayisibul(FILE *devredosyasi){
+
+    char *satir;int k=0,girissayisi=0;
+
+    while(fgets(satir,SATIRBOYUT,devredosyasi)!=NULL){
+
+        if(satir[strlen(satir)-1]=='\n')
+            satir[strlen(satir)-1]='\0';
+        for (int i = 0; i <strlen(satir) ; ++i) {
+            if(satir[i]=='\t')satir[i]=' ';
+        }
+
+
+
+
+
+
+        if(strcmp(satir,"")==0)continue;
+
+        if(strstr(satir,".kapi")!=NULL)k++;
+
+
+
+
+    }
+
+    devre->kapi_sayisi+=k;
+    devre->kapilar=(struct KAPI*)realloc(devre->kapilar,devre->kapi_sayisi * sizeof(struct KAPI));
+
+    rewind(devredosyasi);
+    k=devre->kapi_sayisi-k;
+    int kontrol,j;
+    while(fgets(satir,SATIRBOYUT,devredosyasi)!=NULL){
+        j=0;
+        kontrol=0;
+        if(satir[strlen(satir)-1]=='\n')
+            satir[strlen(satir)-1]='\0';
+        for (int i = 0; i <strlen(satir) ; ++i) {
+            if(satir[i]=='\t')satir[i]=' ';
+        }
+
+        if(strcmp(satir,"")==0)continue;
+
+
+        if(strstr(satir,".kapi")!=NULL){
+            if(strstr(satir,"NOR")!=NULL){
+                satir=strstr(satir,"NOR");
+
+                strcpy(devre->kapilar[k].isim,"NOR");
+                for (int i = 3; i <strlen(satir) ; ++i) {
+
+                    if(isalnum(satir[i])){
+                        kontrol++;
+
+                    }if(satir[i]==' ')continue;
+
+                    if(kontrol==1){
+                        devre->kapilar[k].giris_sayisi=atoi(satir+i);
+                        devre->kapilar[k].giris_isimleri=(char*)malloc(sizeof(char)*devre->kapilar[k].giris_sayisi);
+                        devre->kapilar[k].giris_degerleri=(int*)malloc(sizeof(int)*devre->kapilar[k].giris_sayisi);
+                        continue;
+                    }
+                    if(kontrol==2){
+                        devre->kapilar[k].cikis_isim=satir[i];
+
+                        continue;
+                    }
+                    if(kontrol<=devre->kapilar[k].giris_sayisi+2){
+
+                        devre->kapilar[k].giris_isimleri[j]=satir[i];
+
+                        j++;
+                        continue;
+                    }
+
+                    devre->kapilar[k].gecikme_suresi=atoi(satir+i);
+
+                }
+                devre->kapilar[k].acikkapali=0;
+                devre->kapilar[k].sure=devre->kapilar[k].gecikme_suresi;
+
+                k++;
+            }
+            else if(strstr(satir,"XOR")!=NULL){
+                satir=strstr(satir,"XOR");
+                strcpy(devre->kapilar[k].isim,"XOR");
+                for (int i = 3; i <strlen(satir) ; ++i) {
+
+                    if(isalnum(satir[i])){
+                        kontrol++;
+
+                    }if(satir[i]==' ')continue;
+
+                    if(kontrol==1){
+                        devre->kapilar[k].giris_sayisi=atoi(satir+i);
+                        devre->kapilar[k].giris_isimleri=(char*)malloc(sizeof(char)*devre->kapilar[k].giris_sayisi);
+                        devre->kapilar[k].giris_degerleri=(int*)malloc(sizeof(int)*devre->kapilar[k].giris_sayisi);
+                        continue;
+                    }
+                    if(kontrol==2){
+                        devre->kapilar[k].cikis_isim=satir[i];
+
+                        continue;
+                    }
+                    if(kontrol<=devre->kapilar[k].giris_sayisi+2){
+
+                        devre->kapilar[k].giris_isimleri[j]=satir[i];
+
+                        j++;
+                        continue;
+                    }
+
+                    devre->kapilar[k].gecikme_suresi=atoi(satir+i);
+
+                }
+                devre->kapilar[k].acikkapali=0;
+                devre->kapilar[k].sure=devre->kapilar[k].gecikme_suresi;
+                k++;
+            }
+
+            else if(strstr(satir,"NAND")!=NULL){
+                satir=strstr(satir,"NAND");
+
+
+                strcpy(devre->kapilar[k].isim,"NAND");
+
+                for (int i = 4; i <strlen(satir) ; ++i) {
+
+
+                    if(isalnum(satir[i])){
+                        kontrol++;
+
+                    }if(satir[i]==' ')continue;
+
+                    if(kontrol==1){
+
+
+                        devre->kapilar[k].giris_sayisi=atoi(satir+i);
+                        devre->kapilar[k].giris_isimleri=(char*)malloc(sizeof(char)*devre->kapilar[k].giris_sayisi);
+                        devre->kapilar[k].giris_degerleri=(int*)malloc(sizeof(int)*devre->kapilar[k].giris_sayisi);
+                        continue;
+                    }
+
+                    if(kontrol==2){
+                        devre->kapilar[k].cikis_isim=satir[i];
+
+                        continue;
+                    }
+                    if(kontrol<=devre->kapilar[k].giris_sayisi+2){
+
+                        devre->kapilar[k].giris_isimleri[j]=satir[i];
+
+                        j++;
+                        continue;
+                    }
+
+                    devre->kapilar[k].gecikme_suresi=atoi(satir+i);
+
+                }
+                devre->kapilar[k].acikkapali=0;
+                devre->kapilar[k].sure=devre->kapilar[k].gecikme_suresi;
+                k++;
+
+
+
+            }
+            else if(strstr(satir,"AND")!=NULL){
+                satir=strstr(satir,"AND");
+
+                strcpy(devre->kapilar[k].isim,"AND");
+                for (int i = 3; i <strlen(satir) ; ++i) {
+
+                    if(isalnum(satir[i])){
+                        kontrol++;
+
+                    }if(satir[i]==' ')continue;
+
+                    if(kontrol==1){
+                        devre->kapilar[k].giris_sayisi=atoi(satir+i);
+                        devre->kapilar[k].giris_isimleri=(char*)malloc(sizeof(char)*devre->kapilar[k].giris_sayisi);
+                        devre->kapilar[k].giris_degerleri=(int*)malloc(sizeof(int)*devre->kapilar[k].giris_sayisi);
+                        continue;
+                    }
+                    if(kontrol==2){
+                        devre->kapilar[k].cikis_isim=satir[i];
+
+                        continue;
+                    }
+                    if(kontrol<=devre->kapilar[k].giris_sayisi+2){
+
+                        devre->kapilar[k].giris_isimleri[j]=satir[i];
+
+                        j++;
+                        continue;
+                    }
+
+                    devre->kapilar[k].gecikme_suresi=atoi(satir+i);
+
+                }
+                devre->kapilar[k].acikkapali=0;
+                devre->kapilar[k].sure=devre->kapilar[k].gecikme_suresi;
+                k++;
+            }
+
+            else if(strstr(satir,"NOT")!=NULL){
+                satir=strstr(satir,"NOT");
+
+                strcpy(devre->kapilar[k].isim,"NOT");
+                for (int i = 3; i <strlen(satir) ; ++i) {
+
+                    if(isalnum(satir[i])){
+                        kontrol++;
+
+                    }if(satir[i]==' ')continue;
+
+                    if(kontrol==1){
+                        devre->kapilar[k].giris_sayisi=atoi(satir+i);
+                        devre->kapilar[k].giris_isimleri=(char*)malloc(sizeof(char)*devre->kapilar[k].giris_sayisi);
+                        devre->kapilar[k].giris_degerleri=(int*)malloc(sizeof(int)*devre->kapilar[k].giris_sayisi);
+                        continue;
+                    }
+                    if(kontrol==2){
+                        devre->kapilar[k].cikis_isim=satir[i];
+
+                        continue;
+                    }
+                    if(kontrol<=devre->kapilar[k].giris_sayisi+2){
+
+                        devre->kapilar[k].giris_isimleri[j]=satir[i];
+
+                        j++;
+                        continue;
+                    }
+
+                    devre->kapilar[k].gecikme_suresi=atoi(satir+i);
+
+                }
+                devre->kapilar[k].acikkapali=0;
+                devre->kapilar[k].sure=devre->kapilar[k].gecikme_suresi;
+                k++;
+            }
+
+
+            else if(strstr(satir,"OR")!=NULL){
+                satir=strstr(satir,"OR");
+
+                strcpy(devre->kapilar[k].isim,"OR");
+                for (int i = 2; i <strlen(satir) ; ++i) {
+
+                    if(isalnum(satir[i])){
+                        kontrol++;
+
+                    }if(satir[i]==' ')continue;
+
+                    if(kontrol==1){
+                        devre->kapilar[k].giris_sayisi=atoi(satir+i);
+                        devre->kapilar[k].giris_isimleri=(char*)malloc(sizeof(char)*devre->kapilar[k].giris_sayisi);
+                        devre->kapilar[k].giris_degerleri=(int*)malloc(sizeof(int)*devre->kapilar[k].giris_sayisi);
+                        continue;
+                    }
+                    if(kontrol==2){
+                        devre->kapilar[k].cikis_isim=satir[i];
+
+                        continue;
+                    }
+                    if(kontrol<=devre->kapilar[k].giris_sayisi+2){
+
+                        devre->kapilar[k].giris_isimleri[j]=satir[i];
+
+                        j++;
+                        continue;
+                    }
+
+                    devre->kapilar[k].gecikme_suresi=atoi(satir+i);
+
+                }
+                devre->kapilar[k].acikkapali=0;
+                devre->kapilar[k].sure=devre->kapilar[k].gecikme_suresi;
+                k++;
+            }
+
+            else if(strstr(satir,"nor")!=NULL){
+                satir=strstr(satir,"nor");
+                strcpy(devre->kapilar[k].isim,"nor");
+                for (int i = 3; i <strlen(satir) ; ++i) {
+
+                    if(isalnum(satir[i])){
+                        kontrol++;
+
+                    }if(satir[i]==' ')continue;
+
+                    if(kontrol==1){
+                        devre->kapilar[k].giris_sayisi=atoi(satir+i);
+                        devre->kapilar[k].giris_isimleri=(char*)malloc(sizeof(char)*devre->kapilar[k].giris_sayisi);
+                        devre->kapilar[k].giris_degerleri=(int*)malloc(sizeof(int)*devre->kapilar[k].giris_sayisi);
+                        continue;
+                    }
+                    if(kontrol==2){
+                        devre->kapilar[k].cikis_isim=satir[i];
+
+                        continue;
+                    }
+                    if(kontrol<=devre->kapilar[k].giris_sayisi+2){
+
+                        devre->kapilar[k].giris_isimleri[j]=satir[i];
+
+                        j++;
+                        continue;
+                    }
+
+                    devre->kapilar[k].gecikme_suresi=atoi(satir+i);
+
+                }
+                devre->kapilar[k].acikkapali=0;
+                devre->kapilar[k].sure=devre->kapilar[k].gecikme_suresi;
+                k++;
+            }
+            else if(strstr(satir,"xor")!=NULL){
+                satir=strstr(satir,"xor");
+
+                strcpy(devre->kapilar[k].isim,"xor");
+                for (int i = 3; i <strlen(satir) ; ++i) {
+
+                    if(isalnum(satir[i])){
+                        kontrol++;
+
+                    }if(satir[i]==' ')continue;
+
+                    if(kontrol==1){
+                        devre->kapilar[k].giris_sayisi=atoi(satir+i);
+                        devre->kapilar[k].giris_isimleri=(char*)malloc(sizeof(char)*devre->kapilar[k].giris_sayisi);
+                        devre->kapilar[k].giris_degerleri=(int*)malloc(sizeof(int)*devre->kapilar[k].giris_sayisi);
+                        continue;
+                    }
+                    if(kontrol==2){
+                        devre->kapilar[k].cikis_isim=satir[i];
+
+                        continue;
+                    }
+                    if(kontrol<=devre->kapilar[k].giris_sayisi+2){
+
+                        devre->kapilar[k].giris_isimleri[j]=satir[i];
+
+                        j++;
+                        continue;
+                    }
+
+                    devre->kapilar[k].gecikme_suresi=atoi(satir+i);
+
+                }
+                devre->kapilar[k].acikkapali=0;
+                devre->kapilar[k].sure=devre->kapilar[k].gecikme_suresi;
+                k++;
+            }
+
+            else if(strstr(satir,"nand")!=NULL){
+                satir=strstr(satir,"nand");
+
+                strcpy(devre->kapilar[k].isim,"nand");
+                for (int i = 4; i <strlen(satir) ; ++i) {
+
+                    if(isalnum(satir[i])){
+                        kontrol++;
+
+                    }if(satir[i]==' ')continue;
+
+                    if(kontrol==1){
+                        devre->kapilar[k].giris_sayisi=atoi(satir+i);
+                        devre->kapilar[k].giris_isimleri=(char*)malloc(sizeof(char)*devre->kapilar[k].giris_sayisi);
+                        devre->kapilar[k].giris_degerleri=(int*)malloc(sizeof(int)*devre->kapilar[k].giris_sayisi);
+                        continue;
+                    }
+                    if(kontrol==2){
+                        devre->kapilar[k].cikis_isim=satir[i];
+
+                        continue;
+                    }
+                    if(kontrol<=devre->kapilar[k].giris_sayisi+2){
+
+                        devre->kapilar[k].giris_isimleri[j]=satir[i];
+
+                        j++;
+                        continue;
+                    }
+
+                    devre->kapilar[k].gecikme_suresi=atoi(satir+i);
+
+                }
+                devre->kapilar[k].acikkapali=0;
+                devre->kapilar[k].sure=devre->kapilar[k].gecikme_suresi;
+                k++;
+            }
+            else if(strstr(satir,"and")!=NULL){
+                satir=strstr(satir,"and");
+
+                strcpy(devre->kapilar[k].isim,"and");
+                for (int i = 3; i <strlen(satir) ; ++i) {
+
+                    if(isalnum(satir[i])){
+                        kontrol++;
+
+                    }if(satir[i]==' ')continue;
+
+                    if(kontrol==1){
+                        devre->kapilar[k].giris_sayisi=atoi(satir+i);
+                        devre->kapilar[k].giris_isimleri=(char*)malloc(sizeof(char)*devre->kapilar[k].giris_sayisi);
+                        devre->kapilar[k].giris_degerleri=(int*)malloc(sizeof(int)*devre->kapilar[k].giris_sayisi);
+                        continue;
+                    }
+                    if(kontrol==2){
+                        devre->kapilar[k].cikis_isim=satir[i];
+
+                        continue;
+                    }
+                    if(kontrol<=devre->kapilar[k].giris_sayisi+2){
+
+                        devre->kapilar[k].giris_isimleri[j]=satir[i];
+
+                        j++;
+                        continue;
+                    }
+
+                    devre->kapilar[k].gecikme_suresi=atoi(satir+i);
+
+                }
+                devre->kapilar[k].acikkapali=0;
+                devre->kapilar[k].sure=devre->kapilar[k].gecikme_suresi;
+                k++;
+            }
+
+            else if(strstr(satir,"not")!=NULL){
+                satir=strstr(satir,"not");
+
+                strcpy(devre->kapilar[k].isim,"not");
+                for (int i = 3; i <strlen(satir) ; ++i) {
+
+                    if(isalnum(satir[i])){
+                        kontrol++;
+
+                    }if(satir[i]==' ')continue;
+
+                    if(kontrol==1){
+                        devre->kapilar[k].giris_sayisi=atoi(satir+i);
+                        devre->kapilar[k].giris_isimleri=(char*)malloc(sizeof(char)*devre->kapilar[k].giris_sayisi);
+                        devre->kapilar[k].giris_degerleri=(int*)malloc(sizeof(int)*devre->kapilar[k].giris_sayisi);
+                        continue;
+                    }
+                    if(kontrol==2){
+                        devre->kapilar[k].cikis_isim=satir[i];
+
+                        continue;
+                    }
+                    if(kontrol<=devre->kapilar[k].giris_sayisi+2){
+
+                        devre->kapilar[k].giris_isimleri[j]=satir[i];
+
+                        j++;
+                        continue;
+                    }
+
+                    devre->kapilar[k].gecikme_suresi=atoi(satir+i);
+
+                }
+                devre->kapilar[k].acikkapali=0;
+                devre->kapilar[k].sure=devre->kapilar[k].gecikme_suresi;
+                k++;
+            }
+
+
+            else if(strstr(satir,"or")!=NULL){
+                satir=strstr(satir,"or");
+
+                strcpy(devre->kapilar[k].isim,"or");
+                for (int i = 2; i <strlen(satir) ; ++i) {
+
+                    if(isalnum(satir[i])){
+                        kontrol++;
+
+                    }if(satir[i]==' ')continue;
+
+                    if(kontrol==1){
+                        devre->kapilar[k].giris_sayisi=atoi(satir+i);
+                        devre->kapilar[k].giris_isimleri=(char*)malloc(sizeof(char)*devre->kapilar[k].giris_sayisi);
+                        devre->kapilar[k].giris_degerleri=(int*)malloc(sizeof(int)*devre->kapilar[k].giris_sayisi);
+                        continue;
+                    }
+                    if(kontrol==2){
+                        devre->kapilar[k].cikis_isim=satir[i];
+
+                        continue;
+                    }
+                    if(kontrol<=devre->kapilar[k].giris_sayisi+2){
+
+                        devre->kapilar[k].giris_isimleri[j]=satir[i];
+
+                        j++;
+                        continue;
+                    }
+
+                    devre->kapilar[k].gecikme_suresi=atoi(satir+i);
+
+                }
+                devre->kapilar[k].acikkapali=0;
+                devre->kapilar[k].sure=devre->kapilar[k].gecikme_suresi;
+                k++;
+            }
+
+
+
+
+
+
+
+
+
+
+        }
+
+
+
+
+    }
 
 
 }
