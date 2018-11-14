@@ -1,8 +1,11 @@
+Y	devre.txt
+I	deger.txt
 H 	b
 S
 G*
-H	a
+H	d
 S
-G	e a
-
+G	k
+G	f	
 C
+
