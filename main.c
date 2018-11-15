@@ -37,7 +37,7 @@ struct DEVRE {
 struct DEVRE *devre ;
 char olaylar[BOYUT2];
 int saniye=0;
-
+int ykontrol=0,ikontrol=0;
 time_t t;          //     -__Kaynak__- (log.txt içine tarih yazmak için kullanıldı)
 struct tm zaman;  // https://stackoverflow.com/questions/1442116/how-to-get-the-date-and-time-values-in-a-c-program
 
@@ -67,15 +67,6 @@ int main() {
 
     devre=malloc(sizeof(struct DEVRE));
 
-
-
-
-
-
-
-
-
-
     char *komut;
     komut=(char *)malloc(sizeof(char)*BOYUT);
 
@@ -95,6 +86,27 @@ int main() {
         printf("\n>");
         fgets(komut,BOYUT,stdin);
         komut[strlen(komut)-1]='\0'; // Stringin sonuna sonlandıra karakteri ekler.
+        if(komut[0]=='y'||komut[0]=='Y')ykontrol=1;
+        if(komut[0]=='i'||komut[0]=='I')ikontrol=1;
+        if(ykontrol==0&&(komut[0]!='k'&&komut[0]!='K')){
+            t = time(NULL);
+            zaman = *localtime(&t);
+
+            fprintf(log, "%d/%d/%d-%d:%d:%-10d %-21s Devreyi yuklemediniz.Ilk olarak devreyi yuklemelisiniz.Lutfen tekrar giris yapın !\n", zaman.tm_year + 1900, zaman.tm_mon + 1, zaman.tm_mday,
+                    zaman.tm_hour, zaman.tm_min, zaman.tm_sec, komut);
+
+            printf("Devreyi yuklemediniz.Ilk olarak devreyi yuklemelisiniz.Lutfen tekrar giris yapın !");
+            continue;
+        }
+        if(ikontrol==0&&(komut[0]!='y'&&komut[0]!='Y')&&(komut[0]!='k'&&komut[0]!='K')){
+            t = time(NULL);
+            zaman = *localtime(&t);
+
+            fprintf(log, "%d/%d/%d-%d:%d:%-10d %-21s Degerleri yuklemediniz.Islem yapmak icin degerleri yuklemelisiniz.Lutfen tekrar giris yapın !\n", zaman.tm_year + 1900, zaman.tm_mon + 1, zaman.tm_mday,
+                    zaman.tm_hour, zaman.tm_min, zaman.tm_sec, komut);
+            printf("Degerleri yuklemediniz.Islem yapmak icin degerleri yuklemelisiniz.Lutfen tekrar giris yapın !");
+            continue;
+        }
         if(komutcalistir(komut)){
 
         }
@@ -144,8 +156,8 @@ int komutcalistir(const char *komut){
         FILE *devredosyasi;
 
         if(!(devredosyasi=fopen(dosyaadi,"r"))){
-            fprintf(log,"Dosya acilamadi.\n");
-            printf("Dosya acilamadi.");return 0;
+            fprintf(log,"Dosya acilamadi.");
+            printf("Dosya acilamadi.");ykontrol=0;return 0;
         }else fprintf(log,"devre dosyasi alindi.\n");
 
 
@@ -190,7 +202,7 @@ int komutcalistir(const char *komut){
 
             if(!(devredosyasi=fopen(baskadosyaadi,"r"))){
                 fprintf(log,"Baska dosya acilamadi.\n");
-                printf("Dosya acilamadi.");return 0;
+                printf("Dosya acilamadi.");ykontrol=0;return 0;
             }else fprintf(log,"baska dosya eklendi.\n");
 
 
@@ -261,8 +273,8 @@ int komutcalistir(const char *komut){
         FILE *devredosyasi;
 
         if(!(devredosyasi=fopen(dosyaadi,"r"))){
-            fprintf(log,"Dosya acilamadi.\n");
-            printf("Dosya acilamadi.");return 0;
+            fprintf(log,"Dosya acilamadi.");
+            printf("Dosya acilamadi.");ikontrol=0;return 0;
         }else fprintf(log,"degerler dosyasi alindi.\n");
 
 
@@ -301,7 +313,6 @@ int komutcalistir(const char *komut){
         kapilarisirala();
 
 
-    devreyi_yaz(devre);
 
 
         return 1;
@@ -464,7 +475,6 @@ int komutcalistir(const char *komut){
 
         fprintf(log, "%d/%d/%d-%d:%d:%-10d %-21s ", zaman.tm_year + 1900, zaman.tm_mon + 1, zaman.tm_mday,
                 zaman.tm_hour, zaman.tm_min, zaman.tm_sec, komut);
-
         for (int i = 0; i <strlen(olaylar) ; ++i) {
 
             if(olaylar[i]!='\n'){
@@ -473,6 +483,7 @@ int komutcalistir(const char *komut){
                 k++;
             }else{
                 if(k1==0){
+                    temp[k]='\0';
                     fprintf(log,"%s\n",temp);
                     k1++;
                     strcpy(temp,"");
@@ -577,7 +588,7 @@ int komutcalistir(const char *komut){
         FILE *komutdosyasi;
 
         if(!(komutdosyasi=fopen(dosyaadi,"r"))){
-            fprintf(log,"Dosya acilamadi.\n");
+            fprintf(log,"Dosya acilamadi.");
             printf("Dosya acilamadi.");return 0;
         }else fprintf(log,"komut dosyasi alindi.\n");
 
@@ -1140,6 +1151,7 @@ void kapisayisibul(FILE *devredosyasi){
                 for (int i = 3; i <strlen(satir) ; ++i) {
 
                     if(isalnum(satir[i])){
+                        if (isalnum(satir[i-1]))continue;
                         kontrol++;
 
                     }if(satir[i]==' ')continue;
@@ -1177,6 +1189,7 @@ void kapisayisibul(FILE *devredosyasi){
                 for (int i = 3; i <strlen(satir) ; ++i) {
 
                     if(isalnum(satir[i])){
+                        if (isalnum(satir[i-1]))continue;
                         kontrol++;
 
                     }if(satir[i]==' ')continue;
@@ -1218,6 +1231,7 @@ void kapisayisibul(FILE *devredosyasi){
 
 
                     if(isalnum(satir[i])){
+                        if (isalnum(satir[i-1]))continue;
                         kontrol++;
 
                     }if(satir[i]==' ')continue;
@@ -1261,6 +1275,7 @@ void kapisayisibul(FILE *devredosyasi){
                 for (int i = 3; i <strlen(satir) ; ++i) {
 
                     if(isalnum(satir[i])){
+                        if (isalnum(satir[i-1]))continue;
                         kontrol++;
 
                     }if(satir[i]==' ')continue;
@@ -1299,6 +1314,7 @@ void kapisayisibul(FILE *devredosyasi){
                 for (int i = 3; i <strlen(satir) ; ++i) {
 
                     if(isalnum(satir[i])){
+                        if (isalnum(satir[i-1]))continue;
                         kontrol++;
 
                     }if(satir[i]==' ')continue;
@@ -1338,6 +1354,7 @@ void kapisayisibul(FILE *devredosyasi){
                 for (int i = 2; i <strlen(satir) ; ++i) {
 
                     if(isalnum(satir[i])){
+                        if (isalnum(satir[i-1]))continue;
                         kontrol++;
 
                     }if(satir[i]==' ')continue;
@@ -1375,6 +1392,7 @@ void kapisayisibul(FILE *devredosyasi){
                 for (int i = 3; i <strlen(satir) ; ++i) {
 
                     if(isalnum(satir[i])){
+                        if (isalnum(satir[i-1]))continue;
                         kontrol++;
 
                     }if(satir[i]==' ')continue;
@@ -1412,6 +1430,7 @@ void kapisayisibul(FILE *devredosyasi){
                 for (int i = 3; i <strlen(satir) ; ++i) {
 
                     if(isalnum(satir[i])){
+                        if (isalnum(satir[i-1]))continue;
                         kontrol++;
 
                     }if(satir[i]==' ')continue;
@@ -1450,6 +1469,7 @@ void kapisayisibul(FILE *devredosyasi){
                 for (int i = 4; i <strlen(satir) ; ++i) {
 
                     if(isalnum(satir[i])){
+                        if (isalnum(satir[i-1]))continue;
                         kontrol++;
 
                     }if(satir[i]==' ')continue;
@@ -1487,6 +1507,7 @@ void kapisayisibul(FILE *devredosyasi){
                 for (int i = 3; i <strlen(satir) ; ++i) {
 
                     if(isalnum(satir[i])){
+                        if (isalnum(satir[i-1]))continue;
                         kontrol++;
 
                     }if(satir[i]==' ')continue;
@@ -1525,6 +1546,7 @@ void kapisayisibul(FILE *devredosyasi){
                 for (int i = 3; i <strlen(satir) ; ++i) {
 
                     if(isalnum(satir[i])){
+                        if (isalnum(satir[i-1]))continue;
                         kontrol++;
 
                     }if(satir[i]==' ')continue;
@@ -1564,6 +1586,7 @@ void kapisayisibul(FILE *devredosyasi){
                 for (int i = 2; i <strlen(satir) ; ++i) {
 
                     if(isalnum(satir[i])){
+                        if (isalnum(satir[i-1]))continue;
                         kontrol++;
 
                     }if(satir[i]==' ')continue;
